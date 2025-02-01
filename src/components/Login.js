@@ -1,7 +1,18 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
+import { checkValidData } from "../utils/validate";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import { auth } from "../utils/firebase";
+import { useDispatch } from "react-redux";
+import { addUser } from "../utils/store/userSlice";
 import Header from "./Header";
 
 const Login = () => {
+  const dispatch = useDispatch();
+
   const [inFocus, setInFocus] = useState(false);
   const [passwordFocus, setPasswordFocus] = useState(false);
   const [fullNameFocus, setFullNameFocus] = useState(false);
@@ -11,6 +22,14 @@ const Login = () => {
   const [fullNameValue, setFullNameValue] = useState("");
 
   const [signInOrSignUpBtn, setSignInOrSignUpBtn] = useState(true);
+  const [checkSignIn, setCheckSignIn] = useState(true);
+
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const email = useRef(null);
+  const password = useRef(null);
+  const name = useRef(null);
+
   //Email or mobile Number
   const getValue = (e) => {
     setValue(e.target.value);
@@ -59,16 +78,93 @@ const Login = () => {
     }
   };
 
+  //handle form validation
+  const handleFormValidation = () => {
+    // console.log(email.current.value);
+    // console.log(password.current.value);
+    const message = checkValidData(
+      email.current.value,
+      password.current.value,
+      name.current?.value
+    );
+    setErrorMessage(message);
+    // console.log(message);
+
+    if (message) {
+      return;
+    }
+
+    // sign In or sign Up -> create a new user or login a user
+
+    if (!signInOrSignUpBtn) {
+      // sign Up logic
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          const user = userCredential.user;
+          updateProfile(user, {
+            displayName: name.current.value,
+            photoURL: null,
+          })
+            .then(() => {
+              const { uid, email, displayName } = auth.currentUser;
+              dispatch(
+                addUser({
+                  uid: uid,
+                  email: email,
+                  displayName: displayName,
+                })
+              );
+              // navigate("/browse");
+              setCheckSignIn(false);
+              console.log("update name");
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+          console.log(user);
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorCode + "-" + errorMessage);
+        });
+    } else {
+      // sign In logic
+      signInWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          const user = userCredential.user;
+          // navigate("/browse");
+          setCheckSignIn(false);
+          console.log(user);
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorMessage + "-" + errorCode);
+        });
+    }
+  };
   // console.log(passwordValue);
   return (
     <div className="bg-black h-screen overflow-hidden relative z-0">
-      <Header />
+      <Header checkSignIn={checkSignIn} />
       <div className="absolute h-screen -z-10 w-full opacity-50">
         <img src="/images/netflixbg.jpg" alt="bgImg" />
       </div>
       <div className="h-screen flex justify-center items-center">
-        <div className="pl-20 pr-20 pt-10 pb-5 h-3/4 bg-black bg-opacity-60 rounded-md">
-          <form className="flex flex-col gap-4">
+        <div className="pl-20 pr-20 pt-10 pb-16 h-3/4 bg-black bg-opacity-60 rounded-md">
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            className="flex flex-col gap-4"
+          >
             <h1 className="text-white font-bold text-4xl mb-5">
               {signInOrSignUpBtn ? "Sign In" : "Sign Up"}
             </h1>
@@ -96,9 +192,10 @@ const Login = () => {
                   </label>
                   <div>
                     <input
+                      ref={name}
                       id="fullName"
                       className="outline-none
-                  text-sm text-white ml-2 w-64 h-7 -mt-3 mb-1 bg-transparent"
+                          text-sm text-white ml-2 w-64 h-7 -mt-3 mb-1 bg-transparent"
                       type="text"
                       value={fullNameValue}
                       onChange={(e) => getFullName(e)}
@@ -130,6 +227,7 @@ const Login = () => {
                 </label>
                 <div>
                   <input
+                    ref={email}
                     id="emailOrMobileNum"
                     className="outline-none
                   text-sm text-white ml-2 w-64 h-7 -mt-3 mb-1 bg-transparent"
@@ -163,6 +261,7 @@ const Login = () => {
                 </label>
                 <div>
                   <input
+                    ref={password}
                     id="password"
                     className="outline-none
                   text-sm text-white ml-2 w-64 h-7 -mt-3 mb-1 bg-transparent"
@@ -174,9 +273,13 @@ const Login = () => {
                 </div>
               </div>
             </div>
+            <p className="text-red-600">{errorMessage}</p>
             {/* submit button */}
             <div>
-              <button className="text-white bg-red-600 w-72 h-12 rounded-md font-semibold hover:bg-red-800  transition-all duration-200">
+              <button
+                onClick={() => handleFormValidation()}
+                className="text-white bg-red-600 w-72 h-12 rounded-md font-semibold hover:bg-red-800  transition-all duration-200"
+              >
                 {signInOrSignUpBtn ? "Sign In" : "Sign Up"}
               </button>
             </div>
