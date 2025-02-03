@@ -18,13 +18,13 @@ const MainContainer = () => {
 
   //   console.log(oneMovie);
   return (
-    <div className="">
+    <div>
       <VideoBackgroundTitle
         title={original_title}
         overview={overview}
         poster={poster_path}
       />
-      <div className="">
+      <div>
         <VideoBackgroundTrailer movieId={id} />
       </div>
     </div>

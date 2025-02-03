@@ -13,7 +13,7 @@ const VideoBackgroundTrailer = (props) => {
       src={
         "https://www.youtube.com/embed/" +
         trailerKey +
-        "?modestbranding=1&autoplay=1&mute=1&controls=0&disablekb=1"
+        "?version=3&autoplay=1&loop=1&mute=1&controls=0&disablekb=1"
       }
       title="YouTube video player"
     ></iframe>

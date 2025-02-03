@@ -2,15 +2,15 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { auth } from "../utils/firebase";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addUser, removeUser } from "../utils/store/userSlice";
+import { addProfileImage } from "../utils/store/profileSlice";
 
 const Header = (props) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const profileImage = useSelector((store) => store.ProfileImage?.image);
   const { checkSignIn } = props;
-
-  const [profileImage, setProfileImage] = useState("/images/userIcon.jpg");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -44,12 +44,16 @@ const Header = (props) => {
   const onFileChange = (e) => {
     // console.log(e.target.files);
     const file = e.target.files[0];
-    // console.log(file);
+    console.log(file);
     if (file) {
-      setProfileImage(URL.createObjectURL(file));
+      console.log("hi");
+      const imageUrl = URL.createObjectURL(file);
+      dispatch(addProfileImage(imageUrl));
     }
   };
-  // console.log(profileImage);
+
+  sessionStorage.setItem("reload", false);
+
   return (
     <div
       className={
@@ -69,13 +73,17 @@ const Header = (props) => {
           </h1>
           <div className="flex gap-2">
             <label htmlFor="imageFile">
-              <img className="w-8 h-8" src={profileImage} alt="icon" />
+              <img
+                className="w-8 h-8"
+                src={!profileImage ? "/images/userIcon.jpg" : profileImage}
+                alt="icon"
+              />
             </label>
             <div className="w-0">
               <input
                 id="imageFile"
                 type="file"
-                className="text-xs w-8 hidden   -z-30 relative right-10"
+                className="text-xs w-8 hidden -z-30 relative right-10"
                 onChange={(e) => onFileChange(e)}
               />
             </div>
