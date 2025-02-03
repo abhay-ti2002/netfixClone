@@ -5,19 +5,16 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 
 const Body = () => {
-  const appRouter = createBrowserRouter(
-    [
-      {
-        path: "/",
-        element: <Login />,
-      },
-      {
-        path: "/browse",
-        element: <Browse />,
-      },
-    ],
-    { basename: "/netfixClone" }
-  );
+  const appRouter = createBrowserRouter([
+    {
+      path: "/",
+      element: <Login />,
+    },
+    {
+      path: "/browse",
+      element: <Browse />,
+    },
+  ]);
 
   return (
     <div>
