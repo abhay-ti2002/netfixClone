@@ -1,5 +1,4 @@
 {
-  "homepage": "/netfixClone",
   "version": "0.1.0",
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.0",
